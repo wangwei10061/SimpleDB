@@ -1,6 +1,7 @@
 package simpledb;
 
 import java.io.*;
+import java.util.LinkedList;
 
 /**
  * BufferPool manages the reading and writing of pages into memory from
@@ -20,13 +21,15 @@ public class BufferPool {
     constructor instead. */
     public static final int DEFAULT_PAGES = 50;
 
+    private Page[] pages;
+
     /**
      * Creates a BufferPool that caches up to numPages pages.
      *
      * @param numPages maximum number of pages in this buffer pool.
      */
     public BufferPool(int numPages) {
-        // some code goes here
+        pages = new Page[numPages];
     }
 
     /**
@@ -45,9 +48,21 @@ public class BufferPool {
      * @param perm the requested permissions on the page
      */
     public synchronized Page getPage(TransactionId tid, PageId pid, Permissions perm)
-        throws TransactionAbortedException, DbException {
-        // some code goes here
-        return null;
+            throws TransactionAbortedException, DbException, IOException {
+        int i = 0;
+        for (; i < pages.length && pages[i] != null; i++) {
+            if (pages[i].getId().equals(pid)) {
+                return pages[i];
+            }
+        }
+
+        if (i == pages.length) {
+            throw new DbException("insufficient space in buffer pool");
+        } else {
+            // todo
+            return null;
+        }
+
     }
 
     /**
@@ -75,7 +90,7 @@ public class BufferPool {
     }
 
     /** Return true if the specified transaction has a lock on the specified page */
-    public  synchronized boolean holdsLock(TransactionId tid, PageId p) {
+    public synchronized boolean holdsLock(TransactionId tid, PageId p) {
         // some code goes here
         // not necessary for lab1|lab2
         return false;

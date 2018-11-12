@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The Catalog keeps track of all available tables in the database and their
@@ -15,13 +16,14 @@ import java.util.*;
  */
 
 public class Catalog {
+    private ConcurrentHashMap<String, DbFile> tables;
 
     /**
      * Constructor.
      * Creates a new, empty catalog.
      */
     public Catalog() {
-        // some code goes here
+        tables = new ConcurrentHashMap<>();
     }
 
     /**
@@ -33,7 +35,7 @@ public class Catalog {
      * conflict exists, use the last table to be added as the table for a given name.
      */
     public void addTable(DbFile file, String name) {
-        // some code goes here
+        tables.put(name, file);
     }
 
     /**
@@ -53,8 +55,10 @@ public class Catalog {
      * @throws NoSuchElementException if the table doesn't exist
      */
     public int getTableId(String name) {
-        // some code goes here
-        return 0;
+        if (tables.get(name) == null) {
+            throw new NoSuchElementException();
+        }
+        return tables.get(name).getId();
     }
 
     /**
@@ -63,8 +67,7 @@ public class Catalog {
      *     function passed to addTable
      */
     public TupleDesc getTupleDesc(int tableid) throws NoSuchElementException {
-        // some code goes here
-        return null;
+        return getDbFile(tableid).getTupleDesc();
     }
 
     /**
@@ -74,13 +77,18 @@ public class Catalog {
      *     function passed to addTable
      */
     public DbFile getDbFile(int tableid) throws NoSuchElementException {
-        // some code goes here
-        return null;
+        for (Map.Entry<String, DbFile> entry : tables.entrySet()) {
+            if (entry.getValue().getId() == tableid) {
+                return entry.getValue();
+            }
+        }
+
+        throw new NoSuchElementException();
     }
 
     /** Delete all tables from the catalog */
     public void clear() {
-        // some code goes here
+        tables.clear();
     }
     
     /**
