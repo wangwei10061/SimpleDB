@@ -48,19 +48,28 @@ public class BufferPool {
      * @param perm the requested permissions on the page
      */
     public synchronized Page getPage(TransactionId tid, PageId pid, Permissions perm)
-            throws TransactionAbortedException, DbException, IOException {
-        int i = 0;
-        for (; i < pages.length && pages[i] != null; i++) {
-            if (pages[i].getId().equals(pid)) {
-                return pages[i];
+            throws TransactionAbortedException, DbException {
+        int usedCount = 0;
+        int firstEmptySpace = -1;
+        for (int i = 0; i < pages.length; i++) {
+            if (pages[i] != null) {
+                if (pages[i].getId().equals(pid)) {
+                    return pages[i];
+                }
+                usedCount++;
+            } else {
+                firstEmptySpace = firstEmptySpace == -1 ? i : firstEmptySpace;
             }
         }
 
-        if (i == pages.length) {
+        // 暂时只需要抛出异常
+        if (usedCount == pages.length) {
             throw new DbException("insufficient space in buffer pool");
         } else {
-            // todo
-            return null;
+            HeapFile heapFile = (HeapFile) Database.getCatalog().getDbFile(pid.getTableId());
+            Page newPage = heapFile.readPage(pid);
+            pages[firstEmptySpace] = newPage;
+            return newPage;
         }
 
     }

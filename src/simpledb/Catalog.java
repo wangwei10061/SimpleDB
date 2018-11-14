@@ -55,7 +55,7 @@ public class Catalog {
      * @throws NoSuchElementException if the table doesn't exist
      */
     public int getTableId(String name) {
-        if (tables.get(name) == null) {
+        if (name == null || tables.get(name) == null) {
             throw new NoSuchElementException();
         }
         return tables.get(name).getId();
