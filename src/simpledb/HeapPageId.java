@@ -1,7 +1,11 @@
 package simpledb;
 
+import java.util.Objects;
+
 /** Unique identifier for HeapPage objects. */
 public class HeapPageId implements PageId {
+    private int tableId;
+    private int pgNo;
 
     /**
      * Constructor. Create a page id structure for a specific page of a
@@ -11,13 +15,13 @@ public class HeapPageId implements PageId {
      * @param pgNo The page number in that table.
      */
     public HeapPageId(int tableId, int pgNo) {
-        // some code goes here
+        this.tableId = tableId;
+        this.pgNo = pgNo;
     }
 
     /** @return the table associated with this PageId */
     public int getTableId() {
-        // some code goes here
-        return 0;
+        return tableId;
     }
 
     /**
@@ -25,31 +29,21 @@ public class HeapPageId implements PageId {
      *   this PageId
      */
     public int pageno() {
-        // some code goes here
-        return 0;
+        return pgNo;
     }
 
-    /**
-     * @return a hash code for this page, represented by the concatenation of
-     *   the table number and the page number (needed if a PageId is used as a
-     *   key in a hash table in the BufferPool, for example.)
-     * @see BufferPool
-     */
-    public int hashCode() {
-        // some code goes here
-        throw new UnsupportedOperationException("implement this");
-    }
-
-    /**
-     * Compares one PageId to another.
-     *
-     * @param o The object to compare against (must be a PageId)
-     * @return true if the objects are equal (e.g., page numbers and table
-     *   ids are the same)
-     */
+    @Override
     public boolean equals(Object o) {
-        // some code goes here
-        return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        HeapPageId that = (HeapPageId) o;
+        return tableId == that.tableId &&
+                pgNo == that.pgNo;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(tableId, pgNo);
     }
 
     /**

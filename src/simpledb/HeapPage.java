@@ -48,8 +48,9 @@ public class HeapPage implements Page {
         try{
             // allocate and read the actual records of this page
             tuples = new Tuple[numSlots];
-            for (int i=0; i<tuples.length; i++)
-                tuples[i] = readNextTuple(dis,i);
+            for (int i=0; i<tuples.length; i++) {
+                tuples[i] = readNextTuple(dis, i);
+            }
         }catch(NoSuchElementException e){
             e.printStackTrace();
         }
@@ -59,25 +60,20 @@ public class HeapPage implements Page {
 
     /** Return the number of tuples on this page.
         @returns the number of tuples on this page
-        @param tupleSize the number of bytes occupied by a tuple on a page.
+            tupleSize the number of bytes occupied by a tuple on a page.
     */
-    private int getNumTuples() {        
-        // some code goes here
-        return 0;
-
+    private int getNumTuples() {
+        int tupleSize = td.getSize();
+        return (int)Math.floor((BufferPool.PAGE_SIZE * 8.0) / (tupleSize * 8.0 + 1));
     }
 
     /**
-     * Computes the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
      * @return the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
      */
-    private int getHeaderSize() {        
-        
-        // some code goes here
-        return 0;
-                 
+    private int getHeaderSize() {
+        return (int)Math.ceil(getNumTuples() / 8.0);
     }
-    
+
     /** Return a view of this page before it was modified
         -- used by recovery */
     public HeapPage getBeforeImage(){
@@ -90,8 +86,7 @@ public class HeapPage implements Page {
      * @return the PageId associated with this page.
      */
     public HeapPageId getId() {
-    // some code goes here
-    throw new UnsupportedOperationException("implement this");
+        return pid;
     }
 
     /**
@@ -175,7 +170,7 @@ public class HeapPage implements Page {
                 Field f = tuples[i].getField(j);
                 try {
                     f.serialize(dos);
-                
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -261,16 +256,38 @@ public class HeapPage implements Page {
      * Returns the number of empty slots on this page.
      */
     public int getNumEmptySlots() {
-        // some code goes here
-        return 0;
+        int count = 0;
+
+        for (int i = 0; i < header.length; i++) {
+            for (int j = 0; j < 8; j++) {
+                if ((header[i] >> j & 1) == 0) {
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 
     /**
      * Returns true if associated slot on this page is filled.
      */
     public boolean getSlot(int i) {
-        // some code goes here
-        return false;
+        int quotient;
+        byte remainder = (byte)((i + 1) % 8);
+
+        // i位置刚好是某一字节的最高位
+        if (remainder == 0) {
+            quotient = (i + 1) / 8 - 1;
+            remainder = 8;
+        } else {
+            quotient = (i + 1) / 8;
+        }
+
+        if (((header[quotient] >> (remainder - 1)) & 1) == 1) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -287,7 +304,29 @@ public class HeapPage implements Page {
      */
     public Iterator<Tuple> iterator() {
         // some code goes here
-        return null;
+        return new Iterator<Tuple>() {
+            private int index;
+            @Override
+            public boolean hasNext() {
+                for (int i = index; i < tuples.length; i++) {
+                    if (getSlot(i)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            @Override
+            public Tuple next() {
+                while (index < tuples.length) {
+                    if (getSlot(index)) {
+                        return tuples[index++];
+                    }
+                    index++;
+                }
+                return null;
+            }
+        };
     }
 
 }

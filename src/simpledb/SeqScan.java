@@ -7,6 +7,10 @@ import java.util.*;
  * disk).
  */
 public class SeqScan implements DbIterator {
+    private int tableid;
+    private String tableAlias;
+    private TransactionId tid;
+    private DbFileIterator heapFileIterator;
 
     /**
      * Creates a sequential scan over the specified table as a part of the
@@ -21,12 +25,15 @@ public class SeqScan implements DbIterator {
      *         name can be null.fieldName, tableAlias.null, or null.null).
      */
     public SeqScan(TransactionId tid, int tableid, String tableAlias) {
-        // some code goes here
+        this.tid = tid;
+        this.tableid = tableid;
+        this.tableAlias = tableAlias;
+        heapFileIterator = Database.getCatalog().getDbFile(tableid).iterator(tid);
     }
 
     public void open()
         throws DbException, TransactionAbortedException {
-        // some code goes here
+        heapFileIterator.open();
     }
 
     /**
@@ -36,27 +43,30 @@ public class SeqScan implements DbIterator {
      * prefixed with the tableAlias string from the constructor.
      */
     public TupleDesc getTupleDesc() {
-        // some code goes here
-        return null;
+        TupleDesc oldFieldTypes = Database.getCatalog().getTupleDesc(tableid);
+        String[] oldFieldNames = oldFieldTypes.getFieldNames();
+        String[] fieldNames = new String[oldFieldNames.length];
+        for (int i = 0; i < oldFieldNames.length; i++){
+            fieldNames[i] = tableAlias + "." + oldFieldNames[i];
+        }
+        return new TupleDesc(oldFieldTypes.getFieldTypes(), fieldNames);
     }
 
     public boolean hasNext() throws TransactionAbortedException, DbException {
-        // some code goes here
-        return false;
+        return heapFileIterator.hasNext();
     }
 
     public Tuple next()
         throws NoSuchElementException, TransactionAbortedException, DbException {
-        // some code goes here
-        return null;
+        return heapFileIterator.next();
     }
 
     public void close() {
-        // some code goes here
+        heapFileIterator.close();
     }
 
     public void rewind()
         throws DbException, NoSuchElementException, TransactionAbortedException {
-        // some code goes here
+        heapFileIterator.rewind();
     }
 }
