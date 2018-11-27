@@ -24,7 +24,7 @@ public class EvictionTest extends SimpleDbTestBase {
         HeapFile f = SystemTestUtil.createRandomHeapFile(2, 1024*500, null, null);
         Database.resetBufferPool(BUFFER_PAGES);
         long beginMem = SystemTestUtil.getMemoryFootprint();
-        SeqScan scan = new SeqScan(null, f.getId(), "");
+        SeqScan scan = new SeqScan(new TransactionId(), f.getId(), "");
         scan.open();
         while (scan.hasNext()) {
             scan.next();

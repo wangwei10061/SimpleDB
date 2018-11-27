@@ -78,11 +78,14 @@ public class Delete extends Operator {
                 fetched=true;
                 while (child.hasNext()){
                     Tuple c=child.next();
-           
-                    Database.getBufferPool().deleteTuple(t,c);
-               
+                    try {
 
-                    count++;
+                        Database.getBufferPool().deleteTuple(t,c);
+                        count++;
+                    }
+                    catch (TransactionAbortedException e){
+                        e.printStackTrace();
+                    }
 
                 }
             	Field field = new IntField(count);
@@ -90,9 +93,6 @@ public class Delete extends Operator {
             }
         }
         catch (DbException e){
-                e.printStackTrace();
-            }
-        catch (TransactionAbortedException e){
                 e.printStackTrace();
             }
                   

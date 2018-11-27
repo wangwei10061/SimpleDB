@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * This class is not needed in implementing proj1 and proj2.
  */
 public class TableStats {
-
+/** all the STATIC/FINAL variables/methods follows: **/
     private static final ConcurrentHashMap<String, TableStats> statsMap = new ConcurrentHashMap<String, TableStats>();
 
     static final int IOCOSTPERPAGE = 1000;
@@ -66,6 +66,20 @@ public class TableStats {
      */
     static final int NUM_HIST_BINS = 100;
 
+/**end all the STATIC/FINAL methods/variables **/
+/**instance variables follows: **/
+
+	private int tableId;
+	private int ioCostPerPage;
+	private HeapFile file;
+	private TupleDesc tupleDesc;
+	private int ntups=0;
+	//String is the field name (from TupleDesc's fieldAr)
+	private HashMap<String, Integer> minValues;
+	private HashMap<String, Integer> maxValues;
+	private HashMap<String, Object> histograms;
+	
+
     /**
      * Create a new TableStats object, that keeps track of statistics on each
      * column of a table
@@ -85,6 +99,83 @@ public class TableStats {
         // necessarily have to (for example) do everything
         // in a single scan of the table.
         // some code goes here
+        
+        tableId = tableid;
+        this.ioCostPerPage = ioCostPerPage;
+        file = (HeapFile)Database.getCatalog().getDbFile(tableid);
+        tupleDesc = file.getTupleDesc();
+        minValues = new HashMap<String, Integer>();
+        maxValues = new HashMap<String, Integer>();
+        histograms = new HashMap<String, Object>();
+        
+        Transaction transaction = new Transaction();
+        TransactionId tid = transaction.getId();
+        DbFileIterator it = file.iterator(tid);
+
+	try {
+        
+        it.open(); //catch exceptions
+        while (it.hasNext()){ //catch exceptions
+        	Tuple tuple = it.next(); //catch exceptions
+        	for (int i=0; i<tupleDesc.numFields(); i++) {
+        		String fieldName = tupleDesc.getFieldName(i);
+        		Type fieldType = tupleDesc.getFieldType(i);
+        		
+        		if (fieldType.equals(Type.INT_TYPE)) {
+				int value = ((IntField)tuple.getField(i)).getValue();
+        			if (!minValues.containsKey(fieldName) || value < minValues.get(fieldName)) {
+        				minValues.put(fieldName, value);
+        			}
+        			if (!maxValues.containsKey(fieldName) || value > maxValues.get(fieldName)) {
+        				maxValues.put(fieldName, value);
+        			}
+        		}
+        	}
+        }//closes while
+
+        it.rewind(); //catch exceptions
+        
+	//create all the IntHistograms
+	for (String key : minValues.keySet()) {
+		int value = minValues.get(key);
+		IntHistogram newIntHistogram = new IntHistogram(NUM_HIST_BINS, minValues.get(key), maxValues.get(key));
+		histograms.put(key, newIntHistogram);
+	}
+
+
+	while (it.hasNext()){
+		Tuple tuple = it.next();
+		ntups++;
+		for (int i=0; i<tupleDesc.numFields(); i++) {
+			String fieldName = tupleDesc.getFieldName(i);
+        		Type fieldType = tupleDesc.getFieldType(i);
+			if (fieldType.equals(Type.INT_TYPE)) { //If INT_TYPE
+				int value = ((IntField)tuple.getField(i)).getValue();
+				IntHistogram intHistogram = (IntHistogram)histograms.get(fieldName);
+				intHistogram.addValue(value);
+				histograms.put(fieldName, intHistogram);
+			} else { //STRING_TYPE
+				String value = ((StringField)tuple.getField(i)).getValue();
+				if (histograms.containsKey(fieldName)) {//histograms contains StringHistogram
+					StringHistogram stringHistogram = (StringHistogram)histograms.get(fieldName);
+					stringHistogram.addValue(value);
+					histograms.put(fieldName, stringHistogram);
+				} else {
+					StringHistogram stringHistogram = new StringHistogram(NUM_HIST_BINS);
+					stringHistogram.addValue(value);
+					histograms.put(fieldName, stringHistogram);
+				}
+			}
+		}//closes for numFields()
+	}//closes while loop
+
+	} catch (DbException e) {
+		e.printStackTrace();
+	} catch (TransactionAbortedException e) {
+		e.printStackTrace();
+	}
+        
+ 
     }
 
     /**
@@ -101,7 +192,7 @@ public class TableStats {
      */
     public double estimateScanCost() {
         // some code goes here
-        return 0;
+        return file.numPages()*ioCostPerPage;
     }
 
     /**
@@ -115,7 +206,9 @@ public class TableStats {
      */
     public int estimateTableCardinality(double selectivityFactor) {
         // some code goes here
-        return 0;
+        int ntups = totalTuples();
+	return (int)Math.ceil(ntups*selectivityFactor);
+
     }
 
     /**
@@ -130,6 +223,7 @@ public class TableStats {
      * */
     public double avgSelectivity(int field, Predicate.Op op) {
         // some code goes here
+	//to implement???
         return 1.0;
     }
 
@@ -147,8 +241,21 @@ public class TableStats {
      *         predicate
      */
     public double estimateSelectivity(int field, Predicate.Op op, Field constant) {
+	//field op constant
         // some code goes here
-        return 1.0;
+	String fieldName = tupleDesc.getFieldName(field);
+	Type type = constant.getType();
+	if (type==Type.INT_TYPE) {
+		int value = ((IntField)constant).getValue();
+		IntHistogram histogram = (IntHistogram)histograms.get(fieldName);
+		return histogram.estimateSelectivity(op, value);
+		
+	} else {
+		String value = ((StringField)constant).getValue();
+		StringHistogram histogram = (StringHistogram)histograms.get(fieldName);
+		return histogram.estimateSelectivity(op, value);
+	}
+
     }
 
     /**
@@ -156,7 +263,7 @@ public class TableStats {
      * */
     public int totalTuples() {
         // some code goes here
-        return 0;
+        return ntups;
     }
 
 }

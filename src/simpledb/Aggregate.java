@@ -68,7 +68,7 @@ public class Aggregate extends Operator {
     /**
      * @return If this aggregate is accompanied by a groupby, return the groupby
      *         field index in the <b>INPUT</b> tuples. If not, return
-     *         {@link simpledb.Aggregator#NO_GROUPING}
+     *         {@link Aggregator#NO_GROUPING}
      * */
     public int groupField() {
 	// some code goes here

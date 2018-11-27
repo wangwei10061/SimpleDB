@@ -63,7 +63,7 @@ public class Join extends Operator {
     }
 
     /**
-     * @see simpledb.TupleDesc#merge(TupleDesc, TupleDesc) for possible
+     * @see TupleDesc#merge(TupleDesc, TupleDesc) for possible
      *      implementation logic.
      */
     public TupleDesc getTupleDesc() {

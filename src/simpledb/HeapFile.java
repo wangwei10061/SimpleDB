@@ -10,7 +10,7 @@ import java.util.*;
  * closely with HeapPage. The format of HeapPages is described in the HeapPage
  * constructor.
  * 
- * @see simpledb.HeapPage#HeapPage
+ * @see HeapPage#HeapPage
  */
 public class HeapFile implements DbFile {
 
@@ -99,7 +99,8 @@ public class HeapFile implements DbFile {
             b=page.getPageData();
             rAf.seek(offset);
             rAf.write(b, 0, BufferPool.PAGE_SIZE);
-            rAf.close();          
+            rAf.close();   
+            page.markDirty(false,null);    
         }catch (IOException e){
             e.printStackTrace();
         }
@@ -157,7 +158,9 @@ public class HeapFile implements DbFile {
         Page p=Database.getBufferPool().getPage(tid,pid,Permissions.READ_WRITE);
         HeapPage hp=(HeapPage)p;
         hp.deleteTuple(t);
-        return Database.getBufferPool().getPage(tid,pid,Permissions.READ_ONLY);
+        hp.markDirty(true,  tid);
+        return hp;
+        // return Database.getBufferPool().getPage(tid,pid,Permissions.READ_ONLY);
         // not necessary for proj1
     }
 
