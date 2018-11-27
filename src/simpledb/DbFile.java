@@ -11,7 +11,7 @@ import java.io.*;
  * DbFiles are generally accessed through the buffer pool, rather than directly
  * by operators.
  */
-public interface DbFile {
+public interface DbFile extends Serializable {
     /**
      * Read the specified page from disk.
      *
@@ -21,16 +21,15 @@ public interface DbFile {
 
     /**
      * Push the specified page to disk.
-     * This page must have been previously read from this file via a call to
-     * readPage.
      *
+     * @param p The page to write.  page.getId().pageno() specifies the offset into the file where the page should be written.
      * @throws IOException if the write fails
      *
      */
     public void writePage(Page p) throws IOException;
 
     /**
-     * Adds the specified tuple to the file on behalf of transaction.
+     * Inserts the specified tuple to the file on behalf of transaction.
      * This method will acquire a lock on the affected pages of the file, and
      * may block until the lock can be acquired.
      *
@@ -41,7 +40,7 @@ public interface DbFile {
      * @throws DbException if the tuple cannot be added
      * @throws IOException if the needed file can't be read/written
      */
-    public ArrayList<Page> addTuple(TransactionId tid, Tuple t)
+    public ArrayList<Page> insertTuple(TransactionId tid, Tuple t)
         throws DbException, IOException, TransactionAbortedException;
 
     /**

@@ -1,5 +1,7 @@
 package simpledb;
+import java.io.Serializable;
 import java.util.*;
+import java.io.*;
 
 /**
  * DbIterator is the iterator interface that all SimpleDB operators should
@@ -9,7 +11,7 @@ import java.util.*;
  * child iterator open methods, and in a close method, an iterator
  * should call its children's close methods.
  */
-public interface DbIterator {
+public interface DbIterator extends Serializable{
   /**
    * Opens the iterator. This must be called before any of the other methods.
    * @throws DbException when there are problems opening/accessing the database.
@@ -51,4 +53,5 @@ public interface DbIterator {
    * hasNext(), or rewind() should fail by throwing IllegalStateException.
    */
   public void close();
+
 }

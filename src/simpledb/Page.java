@@ -1,4 +1,6 @@
 package simpledb;
+import java.util.*;
+import java.util.Iterator;;
 
 /**
  * Page is the interface used to represent pages that are resident in the
@@ -50,4 +52,13 @@ public interface Page {
         to it.  Used by recovery.
     */
     public Page getBeforeImage();
+
+    /*
+     * a transaction that wrote this page just committed it.
+     * copy current content to the before image.
+     */
+    public void setBeforeImage();
+
+
 }
+

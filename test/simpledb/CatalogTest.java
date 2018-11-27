@@ -12,13 +12,16 @@ import org.junit.Test;
 
 import simpledb.TestUtil.SkeletonFile;
 import simpledb.systemtest.SimpleDbTestBase;
+import simpledb.systemtest.SystemTestUtil;
 
 public class CatalogTest extends SimpleDbTestBase {
     private static String name = "test";
+	private String nameThisTestRun;
     
     @Before public void addTables() throws Exception {
         Database.getCatalog().clear();
-        Database.getCatalog().addTable(new SkeletonFile(-1, Utility.getTupleDesc(2)), "");
+		nameThisTestRun = SystemTestUtil.getUUID();
+        Database.getCatalog().addTable(new SkeletonFile(-1, Utility.getTupleDesc(2)), nameThisTestRun);
         Database.getCatalog().addTable(new SkeletonFile(-2, Utility.getTupleDesc(2)), name);
     }
 
@@ -37,7 +40,7 @@ public class CatalogTest extends SimpleDbTestBase {
      */
     @Test public void getTableId() {
         assertEquals(-2, Database.getCatalog().getTableId(name));
-        assertEquals(-1, Database.getCatalog().getTableId(""));
+        assertEquals(-1, Database.getCatalog().getTableId(nameThisTestRun));
         
         try {
             Database.getCatalog().getTableId(null);

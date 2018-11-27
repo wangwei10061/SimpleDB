@@ -1,11 +1,7 @@
 package simpledb;
 
-import java.util.Objects;
-
 /** Unique identifier for HeapPage objects. */
 public class HeapPageId implements PageId {
-    private int tableId;
-    private int pgNo;
 
     /**
      * Constructor. Create a page id structure for a specific page of a
@@ -14,13 +10,21 @@ public class HeapPageId implements PageId {
      * @param tableId The table that is being referenced
      * @param pgNo The page number in that table.
      */
+    //Need to initialize param needed: tableId, pgNo, and hashcode.
+    //I added this
+    private int tableId;
+    private int pgNo;
+    private int hashcode;
     public HeapPageId(int tableId, int pgNo) {
-        this.tableId = tableId;
-        this.pgNo = pgNo;
+        // some code goes here
+        this.tableId=tableId;
+        this.pgNo=pgNo;
     }
 
     /** @return the table associated with this PageId */
     public int getTableId() {
+        // some code goes here
+        //System.out.println(tableId);
         return tableId;
     }
 
@@ -28,22 +32,47 @@ public class HeapPageId implements PageId {
      * @return the page number in the table getTableId() associated with
      *   this PageId
      */
-    public int pageno() {
+    public int pageNumber() {
+        // some code goes here
         return pgNo;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        HeapPageId that = (HeapPageId) o;
-        return tableId == that.tableId &&
-                pgNo == that.pgNo;
+    /**
+     * @return a hash code for this page, represented by the concatenation of
+     *   the table number and the page number (needed if a PageId is used as a
+     *   key in a hash table in the BufferPool, for example.)
+     * @see BufferPool
+     */
+    public int hashCode() {
+        // some code goes here
+        Long longcode=Long.parseLong(String.valueOf(tableId)+ String.valueOf(pgNo));
+        int intcode=longcode.hashCode();
+        //System.out.println(intcode);
+        return intcode;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(tableId, pgNo);
+    /**
+     * Compares one PageId to another.
+     *
+     * @param o The object to compare against (must be a PageId)
+     * @return true if the objects are equal (e.g., page numbers and table
+     *   ids are the same)
+     */
+    public boolean equals(Object o) {
+        // some code goes here        
+        //check if it's a HeapPageId
+        if (o instanceof HeapPageId){
+            HeapPageId hpIdObj=(HeapPageId)o;
+            if(hpIdObj.getTableId()==this.getTableId() && hpIdObj.pageNumber()==this.pageNumber()){
+                return true;
+            }else{
+                //tableId or pageNumber are different
+                return false;
+            }
+        } else{
+            //object o is not a HeapPageId
+            return false;
+        }
     }
 
     /**
@@ -53,9 +82,12 @@ public class HeapPageId implements PageId {
      *  constructors.
      */
     public int[] serialize() {
-        // some code goes here
-        // Not necessary for lab 1, 2, or 3
-        return null;
+        int data[] = new int[2];
+
+        data[0] = getTableId();
+        data[1] = pageNumber();
+
+        return data;
     }
 
 }

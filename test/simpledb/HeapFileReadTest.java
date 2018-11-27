@@ -56,11 +56,13 @@ public class HeapFileReadTest extends SimpleDbTestBase {
     /**
      * Unit test for HeapFile.numPages()
      */
+
     @Test
     public void numPages() throws Exception {
         assertEquals(1, hf.numPages());
         // assertEquals(1, empty.numPages());
     }
+    
 
     /**
      * Unit test for HeapFile.readPage()
@@ -73,8 +75,8 @@ public class HeapFileReadTest extends SimpleDbTestBase {
         // NOTE(ghuo): we try not to dig too deeply into the Page API here; we
         // rely on HeapPageTest for that. perform some basic checks.
         assertEquals(484, page.getNumEmptySlots());
-        assertTrue(page.getSlot(1));
-        assertFalse(page.getSlot(20));
+        assertTrue(page.isSlotUsed(1));
+        assertFalse(page.isSlotUsed(20));
     }
 
     @Test

@@ -1,5 +1,7 @@
 package simpledb.systemtest;
 
+import simpledb.systemtest.SystemTestUtil;
+
 import static org.junit.Assert.*;
 
 import java.io.File;
@@ -91,7 +93,7 @@ public class ScanTest extends SimpleDbTestBase {
         File f = SystemTestUtil.createRandomHeapFileUnopened(1, 992*PAGES, 1000, null, tuples);
         TupleDesc td = Utility.getTupleDesc(1);
         InstrumentedHeapFile table = new InstrumentedHeapFile(f, td);
-        Database.getCatalog().addTable(table, "");
+        Database.getCatalog().addTable(table, SystemTestUtil.getUUID());
 
         // Scan the table once
         SystemTestUtil.matchTuples(table, tuples);

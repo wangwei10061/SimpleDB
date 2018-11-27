@@ -2,6 +2,7 @@ package simpledb;
 
 import simpledb.TestUtil.SkeletonFile;
 import simpledb.systemtest.SimpleDbTestBase;
+import simpledb.systemtest.SystemTestUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,9 +10,9 @@ import java.util.*;
 
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+
+import junit.framework.Assert;
 import junit.framework.JUnit4TestAdapter;
 
 public class HeapPageReadTest extends SimpleDbTestBase {
@@ -68,7 +69,7 @@ public class HeapPageReadTest extends SimpleDbTestBase {
      */
     @Before public void addTable() throws Exception {
         this.pid = new HeapPageId(-1, -1);
-        Database.getCatalog().addTable(new SkeletonFile(-1, Utility.getTupleDesc(2)), "");
+        Database.getCatalog().addTable(new SkeletonFile(-1, Utility.getTupleDesc(2)), SystemTestUtil.getUUID());
     }
 
     /**
@@ -99,6 +100,19 @@ public class HeapPageReadTest extends SimpleDbTestBase {
     }
 
     /**
+     * Test remove method of the iterator.
+     */
+    @Test public void new_iteratorTest() throws Exception {
+        HeapPage page = new HeapPage(pid, EXAMPLE_DATA);
+        Iterator<Tuple> it = page.iterator();
+
+        try {
+            it.remove();
+            Assert.fail("Calling remove method should result a UnsupportedOperationException.");
+        } catch (UnsupportedOperationException e) {}
+    }
+
+    /**
      * Unit test for HeapPage.getNumEmptySlots()
      */
     @Test public void getNumEmptySlots() throws Exception {
@@ -107,16 +121,16 @@ public class HeapPageReadTest extends SimpleDbTestBase {
     }
 
     /**
-     * Unit test for HeapPage.getSlot()
+     * Unit test for HeapPage.isSlotUsed()
      */
     @Test public void getSlot() throws Exception {
         HeapPage page = new HeapPage(pid, EXAMPLE_DATA);
 
         for (int i = 0; i < 20; ++i)
-            assertTrue(page.getSlot(i));
+            assertTrue(page.isSlotUsed(i));
 
         for (int i = 20; i < 504; ++i)
-            assertFalse(page.getSlot(i));
+            assertFalse(page.isSlotUsed(i));
     }
 
     /**

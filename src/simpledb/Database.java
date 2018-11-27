@@ -15,9 +15,25 @@ public class Database {
     private final Catalog _catalog;
     private BufferPool _bufferpool; 
 
+    private final static String LOGFILENAME = "log";
+    private LogFile _logfile;
+
     private Database() {
     	_catalog = new Catalog();
     	_bufferpool = new BufferPool(BufferPool.DEFAULT_PAGES);
+    	try {
+            _logfile = new LogFile(new File(LOGFILENAME));
+        } catch(IOException e) {
+            _logfile = null;
+            e.printStackTrace();
+            System.exit(1);
+        }
+        // startControllerThread();
+    }
+
+    /** Return the log file of the static Database instance*/
+    public static LogFile getLogFile() {
+        return _instance._logfile;
     }
 
     /** Return the buffer pool of the static Database instance*/
@@ -37,9 +53,6 @@ public class Database {
         _instance._bufferpool = new BufferPool(pages);
         return _instance._bufferpool;
     }
-
-    //Dummy function so recovery code compiles;  not needed in labs 1-3
-    public static LogFile resetLogFile() throws IOException { return null; }
 
     //reset the database, used for unit tests only.
     public static void reset() {

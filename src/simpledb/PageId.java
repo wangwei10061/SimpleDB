@@ -1,5 +1,7 @@
 package simpledb;
 
+import java.io.Serializable;
+
 /** PageId is an interface to a specific page of a specific table. */
 public interface PageId {
 
@@ -31,6 +33,6 @@ public interface PageId {
      */
     public boolean equals(Object o);
 
-    public int pageno();
+    public int pageNumber();
 }
 

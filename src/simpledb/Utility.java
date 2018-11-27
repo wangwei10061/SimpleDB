@@ -2,6 +2,7 @@ package simpledb;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.UUID;
 
 /** Helper methods used for testing and implementing random features. */
 public class Utility {
@@ -112,7 +113,7 @@ public class Utility {
 
         HeapPage page = null;
         try {
-            page = new HeapPage(pid, HeapPage.createEmptyPageData(hf.getId()));
+            page = new HeapPage(pid, HeapPage.createEmptyPageData());
         } catch (IOException e) {
             // this should never happen for an empty page; bail;
             throw new RuntimeException("failed to create empty page in HeapFile");
@@ -132,7 +133,15 @@ public class Utility {
         // create the HeapFile and add it to the catalog
     	TupleDesc td = getTupleDesc(cols);
         HeapFile hf = new HeapFile(f, td);
-        Database.getCatalog().addTable(hf, "");
+        Database.getCatalog().addTable(hf, UUID.randomUUID().toString());
+        return hf;
+    }
+    
+    public static HeapFile openHeapFile(int cols, String colPrefix, File f) {
+        // create the HeapFile and add it to the catalog
+    	TupleDesc td = getTupleDesc(cols, colPrefix);
+        HeapFile hf = new HeapFile(f, td);
+        Database.getCatalog().addTable(hf, UUID.randomUUID().toString());
         return hf;
     }
 
